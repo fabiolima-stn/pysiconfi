@@ -1,42 +1,75 @@
 # import urllib, json
 import requests
 
-#TODO: criar exceção específica para siconfi
 #TODO: colocar todas as funções num arquivo só
 
-def obtem_entes():
+# class SiconfiErr(Exception, str):
+class SiconfiErr(Exception):
+#TODO: acrescentar string inicial indicando que foi erro na api do siconfi
+    # def __init__(self):
+        # self.message = "Erro na API do Siconfi. " + str
+        # super().__init__(self)
+
+    pass
+
+class Siconfi():
     """
-    Retorna todos os entes cadastrados no SICONFI.
-
-    Retorna um JSON com o código IBGE do ente, seu nome, flag indicativa se é 
-    uma capital de Estado ou não (0 = não, 1 = sim), sigla da região ("BR" no 
-    caso da União), sigla da UF "pai" ("BR" no caso de um Estado e null no caso
-    da União) e esfera ("U" = União, "E" = Estado", "M" = Município).
-
-    Em caso de erro, dispara uma exceção.
+    Acesso à API do Siconfi.
     """
 
-    # url = "http://apidatalake.tesouro.gov.br/ords/siconfi/tt/entes"
-    # response = urllib.urlopen(url)
-    # return json.loads(response.read())
+    def __init__(self):
+        self.__entes = ""
 
-    try:
-        response = requests.get("http://apidatalake.tesouro.gov.br/ords/siconfi/tt/entes")
-    except:
-        raise
+    @property
+    def entes(self):
+        """
+        Retorna todos os entes cadastrados no SICONFI.
 
-    if response.status_code != 200:
-        raise Exception("Erro ao acessar a API do Siconfi. Código do erro: "
-            + str(response.status_code))
-    else:
-        print("\nLog: "); print(response)
-        # return response.json()
+        Retorna um JSON com o código IBGE do ente, seu nome, flag indicativa se é 
+        uma capital de Estado ou não (0 = não, 1 = sim), sigla da região ("BR" no 
+        caso da União), sigla da UF "pai" ("BR" no caso de um Estado e null no caso
+        da União) e esfera ("U" = União, "E" = Estado", "M" = Município).
+
+        Em caso de erro, dispara uma exceção.
+        """
+
+        # url = "http://apidatalake.tesouro.gov.br/ords/siconfi/tt/entes"
+        # response = urllib.urlopen(url)
+        # return json.loads(response.read())
+        if self.__entes != "":
+            return self.__entes
+
+        endpoint = "http://apidatalake.tesouro.gov.br/ords/siconfi/tt/entes"
+        try:
+            response = requests.get(endpoint)
+        except Exception as erro:
+            raise SiconfiErr("Falha ao tentar acessar a API do Siconfi. " +  
+                "Mensagem original: " + str(erro))
+
+        if response.status_code != 200:
+            if response.status_code == 404:
+                raise SiconfiErr("Endpoint " + endpoint + " não encontrado.")
+            else:
+                raise SiconfiErr("Erro ao acessar o endpoint " + endpoint + 
+                    ". Status code HTTP: " + str(response.status_code))
+
+        self.__entes = response.json()
+        return self.__entes
+
+
+#TODO: fazer setter para entes que retorne tipo notimplemented
 
 
 if __name__ == "__main__":
     try:
-        entes = obtem_entes()
-        # print(entes)
+        print("instancia")
+        siconfi = Siconfi()
+        print("primeiro")
+        siconfi.entes
+        print("segundo")
+        siconfi.entes
+    except SiconfiErr as erro:
+        print("erro especifico " + str(erro))
     except Exception as erro:
         print(erro)
 
