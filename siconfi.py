@@ -1,7 +1,4 @@
-# import urllib, json
 import requests, json
-
-#TODO: colocar todas as funções num arquivo só
 
 # class SiconfiErr(Exception, str):
 class SiconfiErr(Exception):
@@ -14,12 +11,10 @@ class SiconfiErr(Exception):
 
 class Siconfi():
     """
-    Acesso à API do Siconfi.
+    API do Siconfi.
     """
 
-    # def __init__(self):
-    #TODO: inicializar com o tipo vazio certo (array?)
-    __entes = ""
+    __entes = []
 
 
     @classmethod
@@ -35,14 +30,8 @@ class Siconfi():
         Em caso de erro na requisição, dispara uma exceção.
         """
 
-        # print("\nLog: "); print("entes entra")
-        # url = "http://apidatalake.tesouro.gov.br/ords/siconfi/tt/entes"
-        # response = urllib.urlopen(url)
-        # return json.loads(response.read())
-
-        #TODO: testar com o tipo vazio certo (array?)
         # só executa o endpoint uma vez
-        if cls.__entes != "":
+        if len(cls.__entes) != 0:
             return cls.__entes
 
         endpoint = "http://apidatalake.tesouro.gov.br/ords/siconfi/tt/entes"
@@ -73,12 +62,7 @@ class Siconfi():
 
 if __name__ == "__main__":
     try:
-        print("instancia")
-        siconfi = Siconfi()
-        print("primeiro")
-        siconfi.entes
-        print("segundo")
-        siconfi.entes
+        Siconfi._obtem_entes()
     except SiconfiErr as erro:
         print("erro especifico " + str(erro))
     except Exception as erro:
