@@ -1,5 +1,5 @@
 # import urllib, json
-import requests
+import requests, json
 
 #TODO: colocar todas as funções num arquivo só
 
@@ -17,11 +17,13 @@ class Siconfi():
     Acesso à API do Siconfi.
     """
 
-    def __init__(self):
-        self.__entes = ""
+    # def __init__(self):
+    #TODO: inicializar com o tipo vazio certo (array?)
+    __entes = ""
 
-    @property
-    def entes(self):
+
+    @classmethod
+    def _obtem_entes(cls):
         """
         Retorna todos os entes cadastrados no SICONFI.
 
@@ -30,14 +32,18 @@ class Siconfi():
         caso da União), sigla da UF "pai" ("BR" no caso de um Estado e null no caso
         da União) e esfera ("U" = União, "E" = Estado", "M" = Município).
 
-        Em caso de erro, dispara uma exceção.
+        Em caso de erro na requisição, dispara uma exceção.
         """
 
+        # print("\nLog: "); print("entes entra")
         # url = "http://apidatalake.tesouro.gov.br/ords/siconfi/tt/entes"
         # response = urllib.urlopen(url)
         # return json.loads(response.read())
-        if self.__entes != "":
-            return self.__entes
+
+        #TODO: testar com o tipo vazio certo (array?)
+        # só executa o endpoint uma vez
+        if cls.__entes != "":
+            return cls.__entes
 
         endpoint = "http://apidatalake.tesouro.gov.br/ords/siconfi/tt/entes"
         try:
@@ -53,11 +59,16 @@ class Siconfi():
                 raise SiconfiErr("Erro ao acessar o endpoint " + endpoint + 
                     ". Status code HTTP: " + str(response.status_code))
 
-        self.__entes = response.json()
-        return self.__entes
+        json_data = json.loads(response.text)
+        cls.__entes = json_data["items"]
+
+        return cls.__entes
 
 
-#TODO: fazer setter para entes que retorne tipo notimplemented
+    # @staticmethod
+    @classmethod
+    def rel_completo(cls):
+        pass
 
 
 if __name__ == "__main__":
