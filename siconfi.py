@@ -1,19 +1,29 @@
 import requests, json
 
-# class SiconfiErr(Exception, str):
-class SiconfiErr(Exception):
-#TODO: acrescentar string inicial indicando que foi erro na api do siconfi
-    # def __init__(self):
-        # self.message = "Erro na API do Siconfi. " + str
-        # super().__init__(self)
 
+"""
+Classes de erros da biblioteca.
+"""
+class ErroSiconfi(Exception):
     pass
+
+class ErroSiconfiEndpointNaoEncontrado(ErroSiconfi):
+    pass
+
+class ErroSiconfiAcessoEndpoint(ErroSiconfi):
+    """Erro genérico no acesso ao endpoint."""
+
+    def __init__(self, endpoint, resposta_http = None):
+        self.endpoint = endpoint
+        self.resposta_http = resposta_http
+
 
 class Siconfi():
     """
-    API do Siconfi.
+    Encapsulamento da API do Siconfi.
     """
 
+    # lista com todos os entes do Siconfi
     __entes = []
 
 
@@ -38,15 +48,14 @@ class Siconfi():
         try:
             response = requests.get(endpoint)
         except Exception as erro:
-            raise SiconfiErr("Falha ao tentar acessar a API do Siconfi. " +  
-                "Mensagem original: " + str(erro))
+            raise ErroSiconfiAcessoEndpoint(endpoint)
 
         if response.status_code != 200:
             if response.status_code == 404:
-                raise SiconfiErr("Endpoint " + endpoint + " não encontrado.")
+                raise ErroSiconfiEndpointNaoEncontrado(endpoint)
+
             else:
-                raise SiconfiErr("Erro ao acessar o endpoint " + endpoint + 
-                    ". Status code HTTP: " + str(response.status_code))
+                raise ErroSiconfiAcessoEndpoint(endpoint, response.status_code)
 
         json_data = json.loads(response.text)
         cls.__entes = json_data["items"]
@@ -63,8 +72,8 @@ class Siconfi():
 if __name__ == "__main__":
     try:
         Siconfi._obtem_entes()
-    except SiconfiErr as erro:
-        print("erro especifico " + str(erro))
+    except ErroSiconfi as erro:
+        print(str(erro))
     except Exception as erro:
         print(erro)
 
